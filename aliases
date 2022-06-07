@@ -1,3 +1,6 @@
+export PATH="$(pwd):$PATH"
+alias saboo="temp.sh 'lir lir'"
+
 alias cdt="cd ~/dev/temp"
 alias cdh="cd ~/dev/home"
 export WORK_DIR=~/dev/work
