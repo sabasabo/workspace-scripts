@@ -1,5 +1,5 @@
 export PATH="$(pwd):$PATH"
-alias saboo="temp.sh 'lir lir'"
+export AWS_REGION="us-east-1"
 
 alias cdt="cd ~/dev/temp"
 alias cdh="cd ~/dev/home"
@@ -14,16 +14,16 @@ eval `ls $WORK_DIR | sed -r "s|(.*)|alias web\1=\"web $WORK_DIR/\1\"|"`
 eval `ls $WORK_DIR | sed -r "s|(.*)|alias code\1=\"code $WORK_DIR/\1\"|"`
 eval `ls $WORK_DIR | sed -r "s|(.*)|alias cd\1=\"cd $WORK_DIR/\1\"|"`
 alias cdterra="/Users/liron/dev/temp/terra/"
-
 alias wip="git status; git add .;git commit -m \"wip\" && git push; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
 alias {wipf,wipv,wipnv}="git status; git add .;git commit -m \"wip\" --no-verify && git push; echo "commit:" ; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
 alias {emptycommit,gitempty,gempty}="git commit --allow-empty -m \"Empty commit\" && git push"
-alias {crfix,crFix,fixCR,fixcr,fixpr}="git add . && git commit -m \" fix code according to CR comments\"} && git push ; echo "commit:" ; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
+alias {crfix,crFix,fixCR,fixcr,fixpr}="git add . && git commit -m \" fix code according to CR comments\" && git push ; echo "commit:" ; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
 alias {prnumber,prnum}="gh pr view --json number --jq  '.number' | cat"
 alias seedpr="open \"https://console.seed.run/env0/Services/activity/stages/pr\$(prnum)\""
 alias bors="gh pr checks | grep bors; open \$(gh pr checks | grep bors | grep -Eo \"(http|https)://[a-zA-Z0-9./?#=_%:-]*\")"
 alias {borss,borsStatus,borsstatus,sbors,statusBors}="gh pr checks | grep bors; echo \"pr number: \$(prnumber)\""
-alias {mbors,mergebors,mergeBors,borsmerge,borsMerge}="emptycommit; gh pr comment $(prnumber) -b \"bors merge\""
+alias {mbors,mergebors,mergeBors,borsmerge,borsMerge}="gh pr comment \$(prnumber) -b \"bors merge\""
+alias {retrybors,retrymergebors,retryMergeBors,retryborsmerge,retryBorsMerge}="gh pr comment \$(prnumber) -b \"bors merge\""
 alias {env0pr,prenv0}="open \"http://pr\$(prnumber).dev.env0.com\""
 #alias {env0local,localenv0,local}="open \"http://localhost:3000\""
 alias {env0dev,devenv0}="open \"http://dev.dev.env0.com\""
@@ -80,4 +80,34 @@ alias ghbf="gh-open tree/\$(git symbolic-ref --quiet --short HEAD )/\$(git rev-p
 
 # Open current directory/file in master branch
 alias ghf='gh-open tree/master/\$(git rev-parse --show-prefix)'
+
+
+
+pfr() {
+  KEY=$(cat ~/.trello-cli/config.json | jq .appKey)
+  TOKEN=$(cat ~/.trello-cli/authentication.json | jq .token)
+  IN_REVIEW_LANE="5d0534264cfe5055fea7ff01"
+  PR_NUM=$(gh pr view --json number --jq  '.number' | cat)
+  
+  MY_TICKETS=$(curl -s --request GET \
+        --url "https://api.trello.com/1/members/eran_elbaz/cards?key=${KEY}&token=${TOKEN}" \
+        --header 'Accept: application/json' | jq -c '.[] | select( .idBoard == "5c7bd9b0f3f00174ac28c2df")' | jq -r .shortLink)
+  
+  for id in $MY_TICKETS; do
+  {
+    CARD_ATTACHMENTS=$(curl -s --request GET \
+           --url "https://api.trello.com/1/cards/${id}/attachments?key=${KEY}&token=${TOKEN}" \
+           --header 'Accept: application/json' | jq -c '.[] | select( .url == "https://github.com/env0/env0/pull/'$PR_NUM'")')
+    if [ ! -z "$CARD_ATTACHMENTS" ]
+    then
+       curl -s -o /dev/null --request PUT \
+         --url "https://api.trello.com/1/cards/${id}?key=${KEY}&token=${TOKEN}&idList=${IN_REVIEW_LANE}" \
+         --header 'Accept: application/json'
+       echo "https://trello.com/c/${id}/"
+    fi
+  }
+  done
+  gh pr edit --add-label "pending final review" --add-reviewer env0/pr-reviewers --remove-label "work in progress"
+}
+
 
