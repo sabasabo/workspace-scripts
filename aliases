@@ -49,7 +49,7 @@ function colorSuccess() {
 }
  
 colorResult() {
-    colorFail $(colorSuccess $1)
+    colorFail $(colorSuccess "$1")
     # echo "$1" | colorFail | colorSuccess
 }
 
