@@ -14,9 +14,9 @@ alias extract="tar -xvf *"
 eval `ls $WORK_DIR | sed -r "s|(.*)|alias web\1=\"web $WORK_DIR/\1\"|"`
 eval `ls $WORK_DIR | sed -r "s|(.*)|alias code\1=\"code $WORK_DIR/\1\"|"`
 eval `ls $WORK_DIR | sed -r "s|(.*)|alias cd\1=\"cd $WORK_DIR/\1\"|"`
-eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias web2\1=\"web $WORK_DIR/\1\"|"`
-eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias code2\1=\"code $WORK_DIR/\1\"|"`
-eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias cd2\1=\"cd $WORK_DIR/\1\"|"`
+eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias web2\1=\"web $WORK_DIR2/\1\"|"`
+eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias code2\1=\"code $WORK_DIR2/\1\"|"`
+eval `ls $WORK_DIR2 | sed -r "s|(.*)|alias cd2\1=\"cd $WORK_DIR2/\1\"|"`
 alias cdterra="/Users/liron/dev/temp/terra/"
 alias wip="git status; git add .;git commit -m \"wip\" && git push; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
 alias {wipf,wipv,wipnv}="git status; git add .;git commit -m \"wip\" --no-verify && git push; echo "commit:" ; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
@@ -24,6 +24,7 @@ alias {emptycommit,gitempty,gempty}="git commit --allow-empty -m \"Empty commit\
 alias {crfix,crFix,fixCR,fixcr,fixpr}="git add . && git commit -m \" fix code according to CR comments\" && git push ; echo "commit:" ; git rev-parse HEAD; git rev-parse HEAD | pbcopy"
 alias {prnumber,prnum}="gh pr view --json number --jq  '.number' | cat"
 alias seedpr="open \"https://console.seed.run/env0/Services/activity/stages/pr\$(prnum)\""
+alias sseed="gh pr checks | grep -i seed; echo \"pr number: \$(prnumber)\""
 alias bors="gh pr checks | grep bors; open \$(gh pr checks | grep bors | grep -Eo \"(http|https)://[a-zA-Z0-9./?#=_%:-]*\")"
 alias {borss,borsStatus,borsstatus,sbors,statusBors}="gh pr checks | grep bors; echo \"pr number: \$(prnumber)\""
 alias {mbors,mergebors,mergeBors,borsmerge,borsMerge}="gh pr comment \$(prnumber) -b \"bors merge\""
@@ -37,6 +38,20 @@ alias liron-dev="source /Users/liron/scripts/envs/liron-dev"
 alias {gitbranches,gitb}="/Users/liron/scripts/git-branches.sh"
 alias gs="git status"
 alias squash=" git reset \$(git merge-base master \$(git rev-parse --abbrev-ref HEAD))"
+
+
+function colorFail() { 
+   echo "$1" | sed -E -e 's,FAILED|fail,\x1b[31m&\x1b[0m,gI' 
+}
+
+function colorSuccess() { 
+   echo "$1" | sed -E -e 's,pass|passed|success,\x1b[32m&\x1b[0m,gI' 
+}
+ 
+colorResult() {
+    colorFail $(colorSuccess $1)
+    # echo "$1" | colorFail | colorSuccess
+}
 
 errorMessage() {
 		echo
